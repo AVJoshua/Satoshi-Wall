@@ -46,8 +46,8 @@ export function WallGrid({ messages, loading }: WallGridProps): JSX.Element {
         <div>
             <SectionHeader count={messages.length} />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {messages.map((msg) => (
-                    <MessageTile key={msg.index} message={msg} />
+                {messages.map((msg, i) => (
+                    <MessageTile key={msg.pending ? `pending-${i}` : msg.index} message={msg} />
                 ))}
             </div>
         </div>

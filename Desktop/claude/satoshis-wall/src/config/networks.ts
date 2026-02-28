@@ -16,7 +16,7 @@ export const ACTIVE_NETWORK: Network = {
 export const RPC_URL = 'https://testnet.opnet.org';
 
 // Contract address — deployed on OPNet testnet
-export const CONTRACT_ADDRESS = 'opt1sqzkzc45m6d6t9cdew9kvk707lqdkwr7nsgu2jr5c';
+export const CONTRACT_ADDRESS = 'opt1sqzpm3gky8pxfa0ulnndeg500lv239s07vvxv8eu0';
 
 // Treasury — receives 1000 sats per post directly via Bitcoin UTXO
 export const TREASURY_ADDRESS = 'opt1per7xtma7v53nllqwf7chl3lf3h2mvxcsqgdwsf56mt92ptfe56gsaeftqf';
