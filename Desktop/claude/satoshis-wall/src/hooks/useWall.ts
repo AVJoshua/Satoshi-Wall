@@ -19,12 +19,19 @@ async function contractCall(calldata: string): Promise<Uint8Array | null> {
         params: [CONTRACT_ADDRESS, calldata, null, null, null, null, null],
     };
 
-    const resp = await fetch(RPC_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(15000),
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    let resp: Response;
+    try {
+        resp = await fetch(RPC_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+        });
+    } finally {
+        clearTimeout(timer);
+    }
 
     if (!resp.ok) return null;
 
@@ -143,8 +150,8 @@ export function useWall(): {
 
             setStats({ messageCount: total, totalRaised: raised });
             setMessages(msgs);
-        } catch {
-            // keep stale data
+        } catch (err) {
+            console.error('[useWall] fetch error:', err);
         } finally {
             fetchingRef.current = false;
             setLoading(false);

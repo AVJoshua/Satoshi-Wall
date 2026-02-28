@@ -37,7 +37,7 @@ Satoshi's Wall is the world's first permanent message board built directly on Bi
 | Property | Value |
 |---|---|
 | Network | OPNet Testnet |
-| Contract Address | `opt1sqqysd49aw7suh5epsvepc8qsy0698apg4s7p02zt` |
+| Contract Address | `opt1sqzkzc45m6d6t9cdew9kvk707lqdkwr7nsgu2jr5c` |
 | Treasury Address | `opt1per7xtma7v53nllqwf7chl3lf3h2mvxcsqgdwsf56mt92ptfe56gsaeftqf` |
 | Min Post Fee | 1,000 satoshis |
 | Wall Capacity | 10,000 messages |
