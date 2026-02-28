@@ -25,6 +25,16 @@ export function App(): JSX.Element {
         }
     }, [stats.messageCount, pendingMsg, baselineCount]);
 
+    // Safety net: clear stale pending message after 2 minutes if count never increased
+    useEffect(() => {
+        if (!pendingMsg) return;
+        const timer = setTimeout(() => {
+            setPendingMsg(null);
+            setBaselineCount(null);
+        }, 120_000);
+        return () => clearTimeout(timer);
+    }, [pendingMsg]);
+
     function handlePosted(text: string): void {
         setJustPosted(true);
         setTimeout(() => setJustPosted(false), 5000);

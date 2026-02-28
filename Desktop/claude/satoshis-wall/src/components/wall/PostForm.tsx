@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getContract, JSONRpcProvider } from 'opnet';
+import { fromBech32 } from '@btc-vision/bitcoin';
 import type { WalletState } from '../../types/index';
 import { encodeMessage } from '../../utils/encoding';
 import { RPC_URL, CONTRACT_ADDRESS, ACTIVE_NETWORK, TREASURY_ADDRESS, MIN_POST_SATS } from '../../config/networks';
@@ -13,6 +14,49 @@ interface PostFormProps {
 }
 
 const MAX_CHARS = 64;
+const RPC_ENDPOINT = `${RPC_URL}/api/v1/json-rpc`;
+const SEL_HAS_POSTED = '8cc849be';
+
+/** Decode a bech32/bech32m OPNet address to a 32-byte hex string (left-padded). */
+function addressToHex32(addr: string): string | null {
+    try {
+        const { data } = fromBech32(addr);
+        const padded = new Uint8Array(32);
+        padded.set(data, 32 - data.length);
+        return Array.from(padded).map((b) => b.toString(16).padStart(2, '0')).join('');
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Check on-chain whether an address has already posted.
+ * Returns true/false, or null if the check could not be performed.
+ */
+async function checkHasPosted(walletAddress: string): Promise<boolean | null> {
+    try {
+        const addrHex = addressToHex32(walletAddress);
+        if (!addrHex) return null;
+
+        const resp = await fetch(RPC_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: Date.now(),
+                method: 'btc_call',
+                params: [CONTRACT_ADDRESS, SEL_HAS_POSTED + addrHex, null, null, null, null, null],
+            }),
+        });
+        if (!resp.ok) return null;
+        const json = await resp.json() as { result?: { result?: string; revert?: string } };
+        if (!json.result?.result || json.result.revert) return null;
+        const bytes = Uint8Array.from(atob(json.result.result), (c) => c.charCodeAt(0));
+        return bytes[0] === 1;
+    } catch {
+        return null;
+    }
+}
 
 export function PostForm({ wallet, onPosted, justPosted }: PostFormProps): JSX.Element {
     const [message, setMessage] = useState('');
@@ -31,6 +75,16 @@ export function PostForm({ wallet, onPosted, justPosted }: PostFormProps): JSX.E
         setError('');
 
         try {
+            // Pre-check: use native fetch to verify this wallet hasn't already posted.
+            // OPNet simulation always uses zero address for Blockchain.tx.origin, so
+            // hasPosted(zero) = false and simulation always passes — we must check the
+            // real wallet address here before simulation.
+            const alreadyPosted = await checkHasPosted(wallet.address);
+            if (alreadyPosted === true) {
+                setError("This wallet has already posted a message. One post per wallet is allowed on Satoshi's Wall.");
+                return;
+            }
+
             const provider = new JSONRpcProvider(RPC_URL, ACTIVE_NETWORK);
             const contract = getContract<ISatoshisWall>(
                 CONTRACT_ADDRESS,
