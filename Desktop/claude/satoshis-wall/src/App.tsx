@@ -9,13 +9,27 @@ import { Leaderboard } from './components/wall/Leaderboard';
 import { LiveFeed } from './components/wall/LiveFeed';
 import { useWallet } from './hooks/useWallet';
 import { useWall } from './hooks/useWall';
+import { checkHasPosted } from './utils/contract';
 
 export function App(): JSX.Element {
     const { wallet, connecting, connectError, connect, disconnect } = useWallet();
     const { messages, stats, loading, refreshing, refresh } = useWall();
     const [justPosted, setJustPosted] = useState(false);
+    const [walletHasPosted, setWalletHasPosted] = useState(false);
     const [pendingMsg, setPendingMsg] = useState<WallMessage | null>(null);
     const [baselineCount, setBaselineCount] = useState<bigint | null>(null);
+
+    // When wallet connects, immediately check on-chain whether it has already posted.
+    // This gives a permanent "already posted" state so the user never wastes a tx.
+    useEffect(() => {
+        if (!wallet.connected || !wallet.address) {
+            setWalletHasPosted(false);
+            return;
+        }
+        void checkHasPosted(wallet.address).then((result) => {
+            if (result === true) setWalletHasPosted(true);
+        });
+    }, [wallet.connected, wallet.address]);
 
     // When the on-chain count grows past the baseline, the reveal tx confirmed — clear pending
     useEffect(() => {
@@ -38,6 +52,8 @@ export function App(): JSX.Element {
     function handlePosted(text: string): void {
         setJustPosted(true);
         setTimeout(() => setJustPosted(false), 5000);
+        // Mark this wallet as permanently posted so the form stays hidden
+        setWalletHasPosted(true);
 
         // Show the message instantly as "pending" while the reveal tx mines
         setPendingMsg({
@@ -59,12 +75,11 @@ export function App(): JSX.Element {
     return (
         <div className="min-h-screen bg-[#06060c] grid-pattern relative">
 
-            {/* ── Ambient gradient blobs (make glass blur visible) ── */}
+            {/* ── Ambient gradient blobs ── */}
             <div
                 className="fixed inset-0 overflow-hidden pointer-events-none"
                 aria-hidden="true"
             >
-                {/* Purple blob — top-left */}
                 <div
                     className="absolute -top-60 -left-60 w-[700px] h-[700px] rounded-full"
                     style={{
@@ -72,7 +87,6 @@ export function App(): JSX.Element {
                             'radial-gradient(circle, rgba(124,58,237,0.13) 0%, transparent 70%)',
                     }}
                 />
-                {/* Orange blob — bottom-right */}
                 <div
                     className="absolute -bottom-60 -right-40 w-[600px] h-[600px] rounded-full"
                     style={{
@@ -80,7 +94,6 @@ export function App(): JSX.Element {
                             'radial-gradient(circle, rgba(247,147,26,0.09) 0%, transparent 70%)',
                     }}
                 />
-                {/* Blue blob — centre */}
                 <div
                     className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full"
                     style={{
@@ -108,17 +121,20 @@ export function App(): JSX.Element {
                     onRefresh={refresh}
                 />
 
-                <LiveFeed messages={displayMessages} />
-
+                {/* Post form — above the wall so call-to-action is immediately visible */}
                 <PostForm
                     wallet={wallet}
                     onPosted={handlePosted}
                     justPosted={justPosted}
+                    alreadyPosted={walletHasPosted}
                 />
 
-                <Leaderboard messages={displayMessages} loading={loading} />
-
+                {/* THE WALL — now directly below the post form */}
                 <WallGrid messages={displayMessages} loading={loading} />
+
+                <LiveFeed messages={displayMessages} />
+
+                <Leaderboard messages={displayMessages} loading={loading} />
             </main>
 
             <footer className="relative z-10 border-t border-white/5 py-8 text-center text-white/25 text-xs font-mono">

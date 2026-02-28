@@ -103,8 +103,12 @@ export function useWall(): {
     const [loading, setLoading]       = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    const lastCountRef = useRef<bigint | null>(null);
-    const fetchingRef  = useRef(false);
+    const lastCountRef  = useRef<bigint | null>(null);
+    const fetchingRef   = useRef(false);
+    // True once we've had at least one successful message fetch (even if count=0).
+    // Used to force a re-fetch in pollCount if messages are empty despite count > 0,
+    // which can happen when the initial fetch had a transient error.
+    const msgsLoadedRef = useRef(false);
 
     const doFullFetch = useCallback(async (isRefresh: boolean): Promise<void> => {
         if (fetchingRef.current) return;
@@ -124,6 +128,9 @@ export function useWall(): {
 
             setStats({ messageCount: total, totalRaised: raised });
             setMessages(msgs);
+            // Mark messages as successfully loaded (even if the array is empty,
+            // that just means count === 0n which is valid).
+            msgsLoadedRef.current = true;
         } finally {
             fetchingRef.current = false;
             setLoading(false);
@@ -135,7 +142,14 @@ export function useWall(): {
         const total = await fetchCount();
         if (total === null) return;
 
-        if (lastCountRef.current === null || total !== lastCountRef.current) {
+        // Re-fetch if: count changed, first run, or messages never loaded successfully
+        // (e.g. initial fetch had a transient error but count > 0).
+        const needsRefresh =
+            lastCountRef.current === null ||
+            total !== lastCountRef.current ||
+            (!msgsLoadedRef.current && total > 0n);
+
+        if (needsRefresh) {
             await doFullFetch(true);
         } else {
             const raised = await fetchTotalRaised();
