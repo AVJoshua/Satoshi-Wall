@@ -137,8 +137,11 @@ export function App(): JSX.Element {
                 <WallGrid messages={displayMessages} loading={loading} />
             </main>
 
-            <footer className="relative z-10 border-t border-white/5 py-8 text-center text-white/25 text-xs font-mono">
+            <footer className="relative z-10 border-t border-white/5 py-8 text-center text-white/25 text-xs font-mono space-y-2">
                 <p>Built on Bitcoin L1 · Powered by OP_NET · Permanent Forever</p>
+                <p className="text-white/15 text-[10px] break-all px-4">
+                    Treasury: opt1per7xtma7v53nllqwf7chl3lf3h2mvxcsqgdwsf56mt92ptfe56gsaeftqf
+                </p>
             </footer>
         </div>
     );

@@ -27,7 +27,10 @@ export function decodeMessage(chunk1: bigint, chunk2: bigint): string {
     let end = bytes.length;
     while (end > 0 && bytes[end - 1] === 0) end--;
 
-    return new TextDecoder().decode(bytes.slice(0, end));
+    // Strip Unicode control/formatting chars (bidirectional overrides, zero-width spaces, etc.)
+    return new TextDecoder()
+        .decode(bytes.slice(0, end))
+        .replace(/[\p{Cc}\p{Cf}]/gu, '');
 }
 
 function bytesToBigInt(bytes: Uint8Array): bigint {

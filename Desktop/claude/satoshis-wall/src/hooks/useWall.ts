@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { WallMessage, WallStats } from '../types/index';
 import { decodeMessage } from '../utils/encoding';
+import { isBlocked } from '../utils/blocklist';
 import { RPC_URL, CONTRACT_ADDRESS } from '../config/networks';
 
 const RPC_ENDPOINT = `${RPC_URL}/api/v1/json-rpc`;
@@ -80,9 +81,12 @@ async function fetchAllMessages(total: bigint): Promise<WallMessage[]> {
         const base = 4 + i * 128;
         if (base + 128 > bytes.length) break;
 
+        const sender = bytesToHex(bytes.slice(base, base + 32));
+        if (isBlocked(sender)) continue;
+
         messages.push({
             index:       Number(offset) + i,
-            sender:      bytesToHex(bytes.slice(base, base + 32)),
+            sender,
             blockNumber: readU256(bytes, base + 32),
             text:        decodeMessage(readU256(bytes, base + 64), readU256(bytes, base + 96)),
         });
