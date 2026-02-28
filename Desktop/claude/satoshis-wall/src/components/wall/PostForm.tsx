@@ -7,6 +7,27 @@ import { RPC_URL, CONTRACT_ADDRESS, ACTIVE_NETWORK, TREASURY_ADDRESS, MIN_POST_S
 import type { ISatoshisWall } from '../../abi/SatoshisWall';
 import { SatoshisWallABI } from '../../abi/SatoshisWall';
 
+const RPC_ENDPOINT = `${RPC_URL}/api/v1/json-rpc`;
+
+async function waitForReceipt(txId: string, timeoutMs = 180_000): Promise<'confirmed' | 'reverted' | 'timeout'> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 4000));
+        try {
+            const resp = await fetch(RPC_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method: 'btc_getTransactionReceipt', params: [txId] }),
+            });
+            const json = await resp.json() as { result?: { revert?: string; receipt?: string } };
+            if (!json.result) continue;
+            if (json.result.revert) return 'reverted';
+            if (json.result.receipt) return 'confirmed';
+        } catch { /* ignore, keep polling */ }
+    }
+    return 'timeout';
+}
+
 interface PostFormProps {
     readonly wallet: WalletState;
     readonly onPosted: (text: string) => void;
@@ -20,6 +41,7 @@ const MAX_CHARS = 64;
 export function PostForm({ wallet, onPosted, justPosted, alreadyPosted }: PostFormProps): JSX.Element {
     const [message, setMessage] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [confirming, setConfirming] = useState(false);
     const [error, setError] = useState('');
 
     const charCount = message.length;
@@ -73,7 +95,7 @@ export function PostForm({ wallet, onPosted, justPosted, alreadyPosted }: PostFo
             }
 
             // Include the treasury payment output in the actual Bitcoin transaction
-            await sim.sendTransaction({
+            const receipt = await sim.sendTransaction({
                 signer: null,
                 mldsaSigner: null,
                 refundTo: wallet.address,
@@ -85,6 +107,22 @@ export function PostForm({ wallet, onPosted, justPosted, alreadyPosted }: PostFo
                 }],
             });
 
+            setSubmitting(false);
+            setConfirming(true);
+
+            const status = await waitForReceipt(receipt.transactionId);
+
+            if (status === 'reverted') {
+                setError(
+                    'Transaction was reverted by the contract. This wallet may have already posted, or the payment was not included correctly.',
+                );
+                return;
+            }
+            if (status === 'timeout') {
+                // Tx may still confirm later — optimistically treat as success
+                // The pending message will disappear on its own if it never confirms
+            }
+
             const postedText = message;
             setMessage('');
             onPosted(postedText);
@@ -94,6 +132,7 @@ export function PostForm({ wallet, onPosted, justPosted, alreadyPosted }: PostFo
             setError(msg);
         } finally {
             setSubmitting(false);
+            setConfirming(false);
         }
     }
 
@@ -202,7 +241,7 @@ export function PostForm({ wallet, onPosted, justPosted, alreadyPosted }: PostFo
                                 maxLength={MAX_CHARS}
                                 rows={3}
                                 className="input-field resize-none"
-                                disabled={submitting}
+                                disabled={submitting || confirming}
                             />
                             <div
                                 className={`absolute bottom-3 right-3 text-xs font-mono transition-colors duration-200 ${
@@ -232,10 +271,17 @@ export function PostForm({ wallet, onPosted, justPosted, alreadyPosted }: PostFo
                             </p>
                             <button
                                 type="submit"
-                                disabled={!isValid || submitting}
+                                disabled={!isValid || submitting || confirming}
                                 className="btn-primary whitespace-nowrap"
                             >
-                                {submitting ? (
+                                {confirming ? (
+                                    <span className="flex items-center gap-2">
+                                        <span
+                                            className="w-3 h-3 rounded-full border border-black/30 border-t-black animate-spin"
+                                        />
+                                        Confirming…
+                                    </span>
+                                ) : submitting ? (
                                     <span className="flex items-center gap-2">
                                         <span
                                             className="w-3 h-3 rounded-full border border-black/30 border-t-black animate-spin"

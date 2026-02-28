@@ -122,6 +122,8 @@ export function App(): JSX.Element {
                 />
 
                 {/* Post form — above the wall so call-to-action is immediately visible */}
+                <LiveFeed messages={displayMessages} />
+
                 <PostForm
                     wallet={wallet}
                     onPosted={handlePosted}
@@ -129,12 +131,10 @@ export function App(): JSX.Element {
                     alreadyPosted={walletHasPosted}
                 />
 
-                {/* THE WALL — now directly below the post form */}
-                <WallGrid messages={displayMessages} loading={loading} />
-
-                <LiveFeed messages={displayMessages} />
-
                 <Leaderboard messages={displayMessages} loading={loading} />
+
+                {/* THE WALL — after Hall of Fame */}
+                <WallGrid messages={displayMessages} loading={loading} />
             </main>
 
             <footer className="relative z-10 border-t border-white/5 py-8 text-center text-white/25 text-xs font-mono">
