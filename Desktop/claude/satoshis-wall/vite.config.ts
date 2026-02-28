@@ -1,9 +1,20 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
+import tailwindConfig from './tailwind.config';
 
 export default defineConfig({
     base: '/Satoshi-Wall/',
     plugins: [react()],
+    css: {
+        postcss: {
+            plugins: [
+                tailwindcss(tailwindConfig),
+                autoprefixer(),
+            ],
+        },
+    },
     define: {
         global: 'globalThis',
     },
@@ -11,7 +22,6 @@ export default defineConfig({
         alias: {
             buffer: 'buffer',
         },
-        // Force all packages to use the same React instance
         dedupe: ['react', 'react-dom'],
     },
 });
