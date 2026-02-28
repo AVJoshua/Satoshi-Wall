@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Satoshi's Wall — Product Requirements Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --orange: #F7931A;
+    --orange-light: #fbb040;
+    --dark: #06060c;
+    --ink: #1a1a2e;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --bg-light: #f9fafb;
+    --bg-orange: #fff8f0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.7;
+    color: var(--text);
+    background: white;
+  }
+
+  /* Cover page */
+  .cover {
+    page-break-after: always;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: var(--dark);
+    padding: 60px;
+    text-align: center;
+  }
+
+  .cover-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #fbb040, #F7931A, #c97010);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: #06060c;
+    font-weight: 900;
+    margin-bottom: 32px;
+    box-shadow: 0 0 60px rgba(247,147,26,0.4);
+  }
+
+  .cover-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(247,147,26,0.7);
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+
+  .cover h1 {
+    font-size: 42pt;
+    font-weight: 800;
+    color: white;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+
+  .cover h1 span {
+    background: linear-gradient(135deg, #fbb040, #F7931A);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .cover-subtitle {
+    font-size: 14pt;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 48px;
+    font-weight: 300;
+    max-width: 500px;
+  }
+
+  .cover-meta {
+    display: flex;
+    gap: 40px;
+    font-size: 9pt;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .cover-meta strong {
+    display: block;
+    font-size: 10pt;
+    color: rgba(255,255,255,0.7);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+  }
+
+  /* Content */
+  .content { max-width: 720px; margin: 0 auto; padding: 60px 48px; }
+
+  /* Typography */
+  h1 { font-size: 24pt; font-weight: 800; color: var(--ink); margin: 48px 0 16px; line-height: 1.2; }
+  h2 { font-size: 16pt; font-weight: 700; color: var(--ink); margin: 40px 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--orange); display: inline-block; }
+  h3 { font-size: 12pt; font-weight: 600; color: var(--ink); margin: 24px 0 8px; }
+  h4 { font-size: 10.5pt; font-weight: 600; color: var(--orange); margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  p { margin-bottom: 14px; }
+
+  a { color: var(--orange); text-decoration: none; }
+
+  /* Section number badges */
+  .section-num {
+    display: inline-block;
+    background: var(--orange);
+    color: white;
+    font-size: 8pt;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-right: 8px;
+    vertical-align: middle;
+    letter-spacing: 0.05em;
+  }
+
+  /* Callout boxes */
+  .callout {
+    border-left: 4px solid var(--orange);
+    background: var(--bg-orange);
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 20px 0;
+  }
+  .callout-title { font-weight: 700; color: var(--orange); font-size: 9pt; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+
+  .info-box {
+    background: var(--bg-light);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 20px 0;
+  }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 9.5pt; }
+  th { background: var(--ink); color: white; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 9pt; letter-spacing: 0.05em; }
+  th:first-child { border-radius: 6px 0 0 0; }
+  th:last-child { border-radius: 0 6px 0 0; }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--bg-light); }
+  tr:last-child td { border-bottom: none; }
+
+  /* Lists */
+  ul, ol { margin: 12px 0 12px 20px; }
+  li { margin-bottom: 6px; }
+  li::marker { color: var(--orange); }
+
+  /* Code */
+  code { font-family: 'JetBrains Mono', monospace; font-size: 9pt; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; color: #1f2937; }
+  pre { background: var(--ink); color: #e2e8f0; padding: 20px; border-radius: 8px; margin: 20px 0; overflow-x: auto; font-size: 9pt; line-height: 1.6; }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  /* Priority badges */
+  .priority { display: inline-block; font-size: 8pt; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+  .p-must { background: #fef2f2; color: #dc2626; }
+  .p-should { background: #fffbeb; color: #d97706; }
+  .p-could { background: #f0fdf4; color: #16a34a; }
+
+  /* Status badges */
+  .status { display: inline-block; font-size: 8pt; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+  .s-done { background: #f0fdf4; color: #16a34a; }
+  .s-live { background: #eff6ff; color: #2563eb; }
+  .s-planned { background: #f5f3ff; color: #7c3aed; }
+
+  /* Divider */
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  /* TOC */
+  .toc { background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 24px 28px; margin: 32px 0; }
+  .toc h3 { margin-top: 0; margin-bottom: 16px; font-size: 11pt; }
+  .toc ol { margin-left: 0; padding-left: 20px; }
+  .toc li { margin-bottom: 4px; font-size: 9.5pt; }
+  .toc a { color: var(--ink); }
+  .toc a:hover { color: var(--orange); }
+
+  /* Page breaks */
+  .page-break { page-break-before: always; }
+
+  /* Footer line */
+  .doc-footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 8.5pt; color: var(--muted); display: flex; justify-content: space-between; }
+
+  /* Print */
+  @media print {
+    body { font-size: 10pt; }
+    .cover { min-height: auto; padding: 40px; }
+    h1 { page-break-after: avoid; }
+    h2, h3 { page-break-after: avoid; }
+    table { page-break-inside: avoid; }
+    .callout, .info-box { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover">
+  <div class="cover-logo">₿</div>
+  <div class="cover-eyebrow">Product Requirements Document</div>
+  <h1>Satoshi's <span>Wall</span></h1>
+  <div class="cover-subtitle">Bitcoin Layer 1 Permanent Message Board — Built on OPNet</div>
+  <div class="cover-meta">
+    <div><span>Version</span><strong>1.0.0</strong></div>
+    <div><span>Date</span><strong>February 2026</strong></div>
+    <div><span>Status</span><strong>Live on Testnet</strong></div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <div class="toc">
+    <h3>Table of Contents</h3>
+    <ol>
+      <li><a href="#overview">Product Overview</a></li>
+      <li><a href="#problem">Problem Statement</a></li>
+      <li><a href="#vision">Product Vision & Goals</a></li>
+      <li><a href="#users">Target Users & Personas</a></li>
+      <li><a href="#features">Feature Requirements</a></li>
+      <li><a href="#contract">Smart Contract Requirements</a></li>
+      <li><a href="#frontend">Frontend Requirements</a></li>
+      <li><a href="#nonfunctional">Non-Functional Requirements</a></li>
+      <li><a href="#economics">Economic Model</a></li>
+      <li><a href="#metrics">Success Metrics</a></li>
+      <li><a href="#roadmap">Roadmap</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. OVERVIEW -->
+  <h2 id="overview"><span class="section-num">1</span>Product Overview</h2>
+
+  <p><strong>Satoshi's Wall</strong> is a permanent, decentralised message board built directly on Bitcoin Layer 1 using OPNet smart contracts. Users pay a small Bitcoin fee to carve a 64-character message into the blockchain — permanently and immutably — with one message allowed per wallet address.</p>
+
+  <div class="callout">
+    <div class="callout-title">Core Value Proposition</div>
+    Unlike social media posts that can be deleted, edited, or platform-banned, a message on Satoshi's Wall exists as long as Bitcoin exists — verifiable by anyone, censored by no one.
+  </div>
+
+  <table>
+    <tr><th>Attribute</th><th>Value</th></tr>
+    <tr><td>Product Name</td><td>Satoshi's Wall</td></tr>
+    <tr><td>Platform</td><td>OPNet (Bitcoin Layer 1 smart contracts)</td></tr>
+    <tr><td>Network</td><td>OPNet Testnet (Signet fork, <code>opt</code> bech32 prefix)</td></tr>
+    <tr><td>Contract Address</td><td><code>opt1sqqysd49aw7suh5epsvepc8qsy0698apg4s7p02zt</code></td></tr>
+    <tr><td>Wall Capacity</td><td>10,000 messages (hard cap)</td></tr>
+    <tr><td>Post Fee</td><td>1,000 satoshis (~$0.01 at current BTC prices)</td></tr>
+    <tr><td>Message Length</td><td>Maximum 64 characters (UTF-8)</td></tr>
+    <tr><td>Wallet</td><td>OPWallet browser extension</td></tr>
+  </table>
+
+  <!-- 2. PROBLEM -->
+  <h2 id="problem" class="page-break"><span class="section-num">2</span>Problem Statement</h2>
+
+  <h3>2.1 The Impermanence of Digital Expression</h3>
+  <p>Every major platform that hosts human expression — Twitter, Facebook, blogs, forums — is subject to censorship, deletion, business failure, or data loss. The average lifespan of a web page is 75 days. Even "permanent" blockchain projects on Ethereum are subject to chain forks, contract upgrades, and protocol changes.</p>
+
+  <h3>2.2 The Cost of Permanence</h3>
+  <p>Bitcoin offers the most secure and permanent data layer ever created. However, traditional Bitcoin inscription methods (Ordinals, OP_RETURN) are limited in programmability — you can't enforce rules like "one message per address" or collect fees trustlessly at the Bitcoin level.</p>
+
+  <h3>2.3 The Gap</h3>
+  <p>There is no product that combines:</p>
+  <ul>
+    <li>True Bitcoin Layer 1 permanence (not a sidechain or L2)</li>
+    <li>Programmable rules (one per wallet, fee enforcement)</li>
+    <li>An engaging, consumer-friendly interface</li>
+    <li>Direct BTC monetisation without wrapping or bridging</li>
+  </ul>
+
+  <div class="callout">
+    <div class="callout-title">The Insight</div>
+    OPNet enables Turing-complete smart contracts executed directly within Bitcoin's consensus layer via Tapscript-encoded calldata. Satoshi's Wall is the first consumer product to leverage this capability for permanent digital expression.
+  </div>
+
+  <!-- 3. VISION -->
+  <h2 id="vision"><span class="section-num">3</span>Product Vision & Goals</h2>
+
+  <h3>3.1 Vision Statement</h3>
+  <p><em>"To create the most permanent public record of human expression in history — inscribed directly on the Bitcoin blockchain, accessible to anyone, deletable by no one."</em></p>
+
+  <h3>3.2 Primary Goals</h3>
+  <table>
+    <tr><th>Goal</th><th>Metric</th><th>Status</th></tr>
+    <tr><td>Deploy functional contract on OPNet testnet</td><td>Contract live, messages confirmed on-chain</td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>Enforce one-message-per-wallet rule</td><td>Zero duplicate posts in contract state</td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>Collect real BTC fees via contract verification</td><td>1,000 sats enforced in <code>requireMinPayment()</code></td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>Consumer-grade UI with real-time updates</td><td>Glass morphism frontend, 5s polling</td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>Reach mainnet with 1,000 wall inscriptions</td><td>1,000 messages posted</td><td><span class="status s-planned">Planned</span></td></tr>
+    <tr><td>Fill the wall (10,000 messages)</td><td>10,000/10,000 capacity</td><td><span class="status s-planned">Future</span></td></tr>
+  </table>
+
+  <!-- 4. USERS -->
+  <h2 id="users" class="page-break"><span class="section-num">4</span>Target Users & Personas</h2>
+
+  <h3>Persona 1 — The Bitcoin Believer</h3>
+  <div class="info-box">
+    <strong>Alex, 32, Software Engineer</strong><br>
+    <em>"I've been stacking sats since 2017. I want to leave a message for the next generation of Bitcoiners."</em><br><br>
+    <strong>Goals:</strong> Make a permanent statement about Bitcoin, be an early adopter of OPNet<br>
+    <strong>Pain points:</strong> Doesn't want to buy tokens or use complex DeFi. Wants simplicity.<br>
+    <strong>Fee tolerance:</strong> Happily pays 1,000 sats (~$1) for permanence
+  </div>
+
+  <h3>Persona 2 — The NFT Collector / Digital Art Enthusiast</h3>
+  <div class="info-box">
+    <strong>Maya, 26, Designer</strong><br>
+    <em>"I've minted Ordinals but the fees were insane. I want something affordable and actually permanent."</em><br><br>
+    <strong>Goals:</strong> Own a unique, verifiable piece of Bitcoin history<br>
+    <strong>Pain points:</strong> High gas fees, complicated UX on other chains<br>
+    <strong>Fee tolerance:</strong> Familiar with NFT minting costs; 1,000 sats is trivial
+  </div>
+
+  <h3>Persona 3 — The Crypto Curious</h3>
+  <div class="info-box">
+    <strong>James, 19, University Student</strong><br>
+    <em>"I've heard of Bitcoin but never done anything on-chain. This seems like an easy first step."</em><br><br>
+    <strong>Goals:</strong> First on-chain interaction, tell friends<br>
+    <strong>Pain points:</strong> Complex wallets, confusing jargon, fear of losing money<br>
+    <strong>Fee tolerance:</strong> Very cost-sensitive; 1,000 sats is acceptable
+  </div>
+
+  <!-- 5. FEATURES -->
+  <h2 id="features"><span class="section-num">5</span>Feature Requirements</h2>
+
+  <table>
+    <tr><th>ID</th><th>Feature</th><th>Priority</th><th>Status</th></tr>
+    <tr><td>F-01</td><td>Post a 64-char message to Bitcoin L1</td><td><span class="priority p-must">MUST</span></td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>F-02</td><td>One message per wallet address (enforced on-chain)</td><td><span class="priority p-must">MUST</span></td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>F-03</td><td>1,000 sat payment verified in contract</td><td><span class="priority p-must">MUST</span></td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>F-04</td><td>Display all wall messages in real time</td><td><span class="priority p-must">MUST</span></td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>F-05</td><td>Display total messages and remaining capacity</td><td><span class="priority p-must">MUST</span></td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>F-06</td><td>Display total sats raised (treasury)</td><td><span class="priority p-must">MUST</span></td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>F-07</td><td>Hall of Fame leaderboard (earliest inscribers)</td><td><span class="priority p-should">SHOULD</span></td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>F-08</td><td>Live scrolling feed of recent messages</td><td><span class="priority p-should">SHOULD</span></td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>F-09</td><td>Optimistic UI (show pending message immediately)</td><td><span class="priority p-should">SHOULD</span></td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>F-10</td><td>OPWallet connect / disconnect</td><td><span class="priority p-must">MUST</span></td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>F-11</td><td>Batch message fetching (getMessages)</td><td><span class="priority p-should">SHOULD</span></td><td><span class="status s-done">Done</span></td></tr>
+    <tr><td>F-12</td><td>Message search / filter</td><td><span class="priority p-could">COULD</span></td><td><span class="status s-planned">Planned</span></td></tr>
+    <tr><td>F-13</td><td>Share message on social media</td><td><span class="priority p-could">COULD</span></td><td><span class="status s-planned">Planned</span></td></tr>
+    <tr><td>F-14</td><td>Mainnet deployment</td><td><span class="priority p-must">MUST</span></td><td><span class="status s-planned">Planned</span></td></tr>
+  </table>
+
+  <!-- 6. CONTRACT -->
+  <h2 id="contract" class="page-break"><span class="section-num">6</span>Smart Contract Requirements</h2>
+
+  <h3>6.1 Storage Layout</h3>
+  <table>
+    <tr><th>Pointer Slot</th><th>Variable</th><th>Type</th><th>Description</th></tr>
+    <tr><td>0</td><td><code>_messageCount</code></td><td><code>StoredU256</code></td><td>Total confirmed messages</td></tr>
+    <tr><td>1</td><td><code>_senders</code></td><td><code>StoredMapU256</code></td><td>index → sender address (as u256)</td></tr>
+    <tr><td>2</td><td><code>_blocks</code></td><td><code>StoredMapU256</code></td><td>index → Bitcoin block number</td></tr>
+    <tr><td>3</td><td><code>_texts1</code></td><td><code>StoredMapU256</code></td><td>index → message bytes 0–31 (chunk1)</td></tr>
+    <tr><td>4</td><td><code>_texts2</code></td><td><code>StoredMapU256</code></td><td>index → message bytes 32–63 (chunk2)</td></tr>
+    <tr><td>5</td><td><code>_hasPosted</code></td><td><code>AddressMemoryMap</code></td><td>address → (index+1), 0 = not posted</td></tr>
+    <tr><td>6</td><td><code>_totalRaised</code></td><td><code>StoredU256</code></td><td>Cumulative satoshis verified as paid</td></tr>
+  </table>
+
+  <h3>6.2 Method Specifications</h3>
+
+  <h4>postMessage(chunk1: uint256, chunk2: uint256) → bool</h4>
+  <ul>
+    <li>MUST verify ≥ 1,000 sat UTXO output to treasury address in <code>Blockchain.tx.outputs</code></li>
+    <li>MUST revert if sender has already posted (<code>_hasPosted[sender] != 0</code>)</li>
+    <li>MUST revert if wall is at capacity (10,000 messages)</li>
+    <li>MUST revert if both chunks are zero (empty message)</li>
+    <li>MUST store sender, block number, chunk1, chunk2 in respective maps</li>
+    <li>MUST increment <code>_messageCount</code> and <code>_totalRaised</code></li>
+  </ul>
+
+  <h4>getMessages(offset: uint256, limit: uint256) → bytes</h4>
+  <ul>
+    <li>Limit is capped at 50 entries per call</li>
+    <li>Response format: <code>uint32 count</code> followed by <code>N × 128 bytes</code></li>
+    <li>Each entry: <code>sender(32) + blockNumber(32) + chunk1(32) + chunk2(32)</code></li>
+  </ul>
+
+  <h4>getTotalRaised() → uint256</h4>
+  <ul>
+    <li>Returns the cumulative <code>_totalRaised</code> storage value in satoshis</li>
+    <li>Updated atomically with each successful <code>postMessage</code> call</li>
+  </ul>
+
+  <!-- 7. FRONTEND -->
+  <h2 id="frontend"><span class="section-num">7</span>Frontend Requirements</h2>
+
+  <h3>7.1 RPC Communication</h3>
+  <p>The frontend MUST use native <code>fetch()</code> with the <code>btc_call</code> JSON-RPC method directly. The <code>opnet</code> library's <code>JSONRpcProvider</code> uses <code>undici</code> (Node.js HTTP) which fails in browser environments and is intercepted by OPWallet for read calls.</p>
+
+  <h3>7.2 Polling Strategy</h3>
+  <ul>
+    <li>Poll <code>getMessageCount()</code> every 5 seconds (lightweight: 1 call, 32 bytes)</li>
+    <li>Only trigger full <code>getMessages()</code> fetch when count changes</li>
+    <li>After posting: display optimistic "Pending" tile immediately; clear when count increases</li>
+  </ul>
+
+  <h3>7.3 OPWallet Compatibility</h3>
+  <p>The <code>opnet</code> library (v≥latest) must be patched to omit <code>signer</code> and <code>mldsaSigner</code> keys from interaction parameters when they are <code>null</code>. OPWallet's <code>signInteraction</code> checks for key <em>presence</em>, not truthiness, and rejects requests containing these keys even when null.</p>
+
+  <!-- 8. NON-FUNCTIONAL -->
+  <h2 id="nonfunctional" class="page-break"><span class="section-num">8</span>Non-Functional Requirements</h2>
+
+  <table>
+    <tr><th>Category</th><th>Requirement</th><th>Target</th></tr>
+    <tr><td>Performance</td><td>Initial page load (JS bundle)</td><td>&lt; 200 KB gzipped</td></tr>
+    <tr><td>Performance</td><td>Time to first message display</td><td>&lt; 3 seconds on broadband</td></tr>
+    <tr><td>Reliability</td><td>RPC call timeout</td><td>15 second abort signal</td></tr>
+    <tr><td>Reliability</td><td>Failed fetches</td><td>Keep stale data, no blank wall</td></tr>
+    <tr><td>Concurrency</td><td>Parallel fetch guard</td><td>No concurrent full-fetches (mutex ref)</td></tr>
+    <tr><td>Security</td><td>XSS prevention</td><td>All message text rendered via React (no dangerouslySetInnerHTML)</td></tr>
+    <tr><td>Security</td><td>Contract input validation</td><td>Empty message check, capacity check, duplicate check all on-chain</td></tr>
+    <tr><td>Accessibility</td><td>Colour contrast</td><td>WCAG AA for all text elements</td></tr>
+    <tr><td>Compatibility</td><td>Browser support</td><td>Chrome/Edge/Firefox latest + OPWallet extension</td></tr>
+    <tr><td>Responsiveness</td><td>Mobile layout</td><td>Fully responsive down to 375px viewport</td></tr>
+  </table>
+
+  <!-- 9. ECONOMICS -->
+  <h2 id="economics"><span class="section-num">9</span>Economic Model</h2>
+
+  <h3>9.1 Fee Structure</h3>
+  <table>
+    <tr><th>Fee Type</th><th>Amount</th><th>Recipient</th><th>Enforced By</th></tr>
+    <tr><td>Post fee</td><td>1,000 sats</td><td>Treasury wallet</td><td>Contract (<code>requireMinPayment</code>)</td></tr>
+    <tr><td>Bitcoin network fee</td><td>~5,000–15,000 sats (variable)</td><td>Bitcoin miners</td><td>OPWallet / Bitcoin mempool</td></tr>
+  </table>
+
+  <h3>9.2 Revenue Projections</h3>
+  <table>
+    <tr><th>Messages Posted</th><th>Treasury Revenue</th><th>At $100k BTC</th></tr>
+    <tr><td>100</td><td>100,000 sats</td><td>$100</td></tr>
+    <tr><td>1,000</td><td>1,000,000 sats (0.01 BTC)</td><td>$1,000</td></tr>
+    <tr><td>10,000 (full wall)</td><td>10,000,000 sats (0.1 BTC)</td><td>$10,000</td></tr>
+  </table>
+
+  <div class="callout">
+    <div class="callout-title">Payment Flow</div>
+    The treasury receives sats at the Bitcoin UTXO level — directly into the wallet, with zero smart contract custody. The contract acts as a witness/notary, not a custodian. There is no bridge, wrap, or escrow.
+  </div>
+
+  <!-- 10. METRICS -->
+  <h2 id="metrics"><span class="section-num">10</span>Success Metrics</h2>
+
+  <table>
+    <tr><th>Metric</th><th>Target (3 months)</th><th>Target (12 months)</th></tr>
+    <tr><td>Messages posted (testnet)</td><td>500</td><td>10,000 (full)</td></tr>
+    <tr><td>Unique wallet addresses</td><td>500</td><td>10,000</td></tr>
+    <tr><td>Total sats raised</td><td>500,000 sats</td><td>10M sats (0.1 BTC)</td></tr>
+    <tr><td>Daily active users (DAU)</td><td>50</td><td>500</td></tr>
+    <tr><td>Page load time</td><td>&lt; 2s</td><td>&lt; 2s</td></tr>
+    <tr><td>RPC success rate</td><td>&gt; 95%</td><td>&gt; 99%</td></tr>
+  </table>
+
+  <!-- 11. ROADMAP -->
+  <h2 id="roadmap" class="page-break"><span class="section-num">11</span>Roadmap</h2>
+
+  <h3>Phase 1 — Testnet (Complete)</h3>
+  <ul>
+    <li>AssemblyScript contract with postMessage, getMessages, getTotalRaised, hasPosted</li>
+    <li>OPNet testnet deployment</li>
+    <li>React frontend with glass morphism UI, OPWallet integration</li>
+    <li>Real BTC payment enforcement (1,000 sats to treasury)</li>
+    <li>Leaderboard, live feed, optimistic updates</li>
+  </ul>
+
+  <h3>Phase 2 — Mainnet Launch</h3>
+  <ul>
+    <li>Security audit of the smart contract</li>
+    <li>Mainnet deployment on OPNet (Bitcoin mainnet)</li>
+    <li>Landing page + marketing site</li>
+    <li>Social sharing (unique shareable link per message)</li>
+    <li>Message search and filtering</li>
+  </ul>
+
+  <h3>Phase 3 — Growth</h3>
+  <ul>
+    <li>Certificate of Inscription NFT (OP721) for each posted message</li>
+    <li>Embeddable widget for other websites</li>
+    <li>API for third-party integrations</li>
+    <li>Mobile-optimised PWA with wallet deep-link support</li>
+    <li>Multiple wall categories (art, quotes, dedications)</li>
+  </ul>
+
+  <hr>
+
+  <div class="doc-footer">
+    <span>Satoshi's Wall — Product Requirements Document v1.0.0</span>
+    <span>Confidential &bull; February 2026</span>
+  </div>
+
+</div>
+</body>
+</html>
