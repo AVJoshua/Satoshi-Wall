@@ -5,7 +5,7 @@ import autoprefixer from 'autoprefixer';
 import tailwindConfig from './tailwind.config';
 
 export default defineConfig({
-    base: '/Satoshi-Wall/',
+    base: '/',
     plugins: [react()],
     css: {
         postcss: {
